@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -eu
+
+NETWORK_NAME=$1
+PROXY_IMAGE=$2
+PROXY_CONTAINER_NAME=$3
+
+stopDockerNetwork() {
+    if [[ "$(docker network list --format '{{.Name}}' | grep "^${NETWORK_NAME}$")" != "" ]]; then
+        docker network rm $NETWORK_NAME 1>/dev/null
+    fi
+    echo "Docker network has been removed."
+}
+
+startProxy() {
+    if [[ "$(docker container list --format '{{.Names}}' | grep "^${PROXY_CONTAINER_NAME}$")" != "" ]]; then
+        docker container stop $PROXY_CONTAINER_NAME 1>/dev/null
+    fi
+    echo "Docker proxy has stopped."
+}
+
+stopBroker() {
+    local broker_dir=$(dirname $0)/../../imds-spoof-broker
+    if [ -f ${broker_dir}/broker.pid ]; then
+        PID=`cat ${broker_dir}/broker.pid`
+        if kill -0 $PID > /dev/null 2>&1; then
+            kill $PID
+            echo "broker stopped"
+        else
+            echo "Process $PID is not running; skipping broker stop."
+        fi
+        rm -f ${broker_dir}/broker.pid
+        return
+    fi
+    echo "${broker_dir}/broker.pid not found; skipping broker stop."
+}
+
+stopBroker
+startProxy
+stopDockerNetwork

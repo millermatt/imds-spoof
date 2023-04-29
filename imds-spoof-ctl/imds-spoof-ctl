@@ -1,0 +1,72 @@
+#!/bin/bash
+
+set -eu
+
+trap "exit 1" TERM
+
+getBrokerHost() {
+    # Get the operating system name
+    OS=$(uname)
+    # Check if the operating system is Linux
+    if [[ "$OS" == "Linux" ]]; then
+        # Get the IP address using ifconfig
+        IP=$(ifconfig | grep 'inet ' | grep -v '127.0.0.1' | grep -v '169.254.169.1' | awk '{print $2}')
+        # If ifconfig didn't work, try using ip
+        if [ -z "$IP" ]; then
+            IP=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | grep -v '169.254.169.1' | awk '{print $2}' | cut -d'/' -f1)
+        fi
+        IP="$(echo "$IP" | head -n 1)"
+        echo "$IP"
+        echo "Broker IP: '$IP'" >/dev/stderr
+        return
+    fi
+
+    # Check if the operating system is macOS
+    if [[ "$OS" == "Darwin" ]]; then
+        echo "host.docker.internal"
+        return
+    fi
+
+    return 1
+}
+
+DEFAULT_NETWORK_NAME=imds-spoof
+DEFAULT_PROXY_IMAGE=nginx
+DEFAULT_PROXY_CONTAINER_NAME=imds-spoof-proxy
+DEFAULT_IMDS_SPOOF_BROKER_HOST="$(getBrokerHost)"
+DEFAULT_IMDS_SPOOF_BROKER_PORT="3000"
+DEFAULT_IMDS_SPOOF_PROXY_OPTS="-e BROKER_HOST=$DEFAULT_IMDS_SPOOF_BROKER_HOST -e BROKER_PORT=$DEFAULT_IMDS_SPOOF_BROKER_PORT -v $(dirname $0)/config/imds-spoof-nginx.conf.template:/etc/nginx/templates/default.conf.template:ro"
+DEFAULT_IMDS_SPOOF_PROXY_COMMAND=""
+
+export IMDS_SPOOF_PROXY_OPTS="${IMDS_SPOOF_PROXY_OPTS-${DEFAULT_IMDS_SPOOF_PROXY_OPTS}}"
+export IMDS_SPOOF_BROKER_HOST="${IMDS_SPOOF_BROKER_HOST-${DEFAULT_IMDS_SPOOF_BROKER_HOST}}"
+export IMDS_SPOOF_BROKER_PORT="${IMDS_SPOOF_BROKER_PORT-${DEFAULT_IMDS_SPOOF_BROKER_PORT}}"
+
+
+COMMAND=$1
+shift
+
+`dirname $0`/commands/${COMMAND} $DEFAULT_NETWORK_NAME $DEFAULT_PROXY_IMAGE $DEFAULT_PROXY_CONTAINER_NAME
+
+
+# function validate_network_name {
+#     [ "$1" != "" ] || {
+
+#     }
+# }
+
+# while [[ "$#" -gt 0 ]]; do
+#     case $1 in
+#         -n|--network-name)
+#             network_name="$2";
+#             vaidate_network_name "$network_name"
+#             shift ;;
+
+#         -u|--uglify) uglify=1 ;;
+#         *) echo "Unknown parameter passed: $1"; exit 1 ;;
+#     esac
+#     shift
+# done
+
+# echo "Where to deploy: $target"
+# echo "Should uglify  : $uglify"

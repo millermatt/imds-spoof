@@ -1,0 +1,6 @@
+#!/bin/bash
+
+docker run --rm -dit --name test busybox sh
+docker network connect imds-spoof test
+# docker attach test --detach-keys="ctrl-d,d"
+docker exec -it test wget -O - http://169.254.169.254 >/dev/null

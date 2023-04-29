@@ -1,0 +1,46 @@
+#!/bin/bash
+
+IMDS_SPOOF_PROXY_OPTS=$IMDS_SPOOF_PROXY_OPTS
+DEFAULT_IMDS_SPOOF_BROKER_HOST=$DEFAULT_IMDS_SPOOF_BROKER_HOST
+DEFAULT_IMDS_SPOOF_BROKER_PORT=$DEFAULT_IMDS_SPOOF_BROKER_PORT
+
+set -eu
+
+NETWORK_NAME=$1
+PROXY_IMAGE=$2
+PROXY_CONTAINER_NAME=$3
+
+startDockerNetwork() {
+    if [[ "$(docker network list --format '{{.Name}}' | grep "^${NETWORK_NAME}$")" == "" ]]; then
+        docker network create --driver bridge --ip-range 169.254.169.0/16 --subnet 169.254.169.127/24 $NETWORK_NAME 1>/dev/null
+    fi
+    echo "Docker network is running."
+}
+
+startProxy() {
+    if [[ "$(docker container list --format '{{.Names}}' | grep "^${PROXY_CONTAINER_NAME}$")" == "" ]]; then
+    set -x
+        eval "docker container create -it --name $PROXY_CONTAINER_NAME $IMDS_SPOOF_PROXY_OPTS $PROXY_IMAGE 1>/dev/null"
+    set +x
+        docker network connect --ip 169.254.169.254 $NETWORK_NAME $PROXY_CONTAINER_NAME
+        docker network disconnect bridge $PROXY_CONTAINER_NAME
+        docker container start $PROXY_CONTAINER_NAME 1>/dev/null
+        docker logs $PROXY_CONTAINER_NAME
+    fi
+    echo "Docker proxy is running."
+}
+
+startBroker() {
+    local broker_dir=$(dirname $0)/../../imds-spoof-broker
+    mkdir -p ${broker_dir}/logs
+    if [ -f ${broker_dir}/broker.pid ]; then
+        echo "${broker_dir}/broker.pid exists; skipping broker start."
+        return
+    fi
+    HOST=$IMDS_SPOOF_BROKER_HOST PORT=$IMDS_SPOOF_BROKER_PORT node ${broker_dir}/src/index.js > ${broker_dir}/logs/stdout.log 2> ${broker_dir}/logs/stderr.log &
+    echo $! > ${broker_dir}/broker.pid
+}
+
+startDockerNetwork
+startProxy
+startBroker
