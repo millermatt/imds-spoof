@@ -1,41 +1,53 @@
 #!/bin/bash
 
+# these lines allow `set -u` (no undefined variables) to work for the rest of the script
+export IMDS_SPOOF_NETWORK_NAME=$IMDS_SPOOF_NETWORK_NAME
+export IMDS_SPOOF_PROXY_CONTAINER_NAME=$IMDS_SPOOF_PROXY_CONTAINER_NAME
+export IMDS_SPOOF_BROKER_COMMAND=$IMDS_SPOOF_BROKER_COMMAND
+export IMDS_SPOOF_BROKER_FOLDER=$IMDS_SPOOF_BROKER_FOLDER
+
 set -eu
 
-NETWORK_NAME=$1
-PROXY_IMAGE=$2
-PROXY_CONTAINER_NAME=$3
-
 stopDockerNetwork() {
-    if [[ "$(docker network list --format '{{.Name}}' | grep "^${NETWORK_NAME}$")" != "" ]]; then
-        docker network rm $NETWORK_NAME 1>/dev/null
+  if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_NETWORK_NAME}$")" != "" ]]; then
+    if [[ !$(docker network rm $IMDS_SPOOF_NETWORK_NAME >/dev/null 2>&1) ]]; then
+      echo "Could not stop Docker network '$IMDS_SPOOF_NETWORK_NAME'" >/dev/stderr
+      echo "Containers connected to the network:" >/dev/stderr
+      local connected_containers="$(docker network inspect $IMDS_SPOOF_NETWORK_NAME -f '{{range $id, $container := .Containers}}{{$container.Name}} {{end}}')"
+      # trim trailing whitespace
+      connected_containers="$(echo "$connected_containers" | xargs)"
+      echo "$connected_containers" | tr ' ' '\n' | sed -e 's/^/  - /'
+      return 1
     fi
-    echo "Docker network has been removed."
+  fi
 }
 
-startProxy() {
-    if [[ "$(docker container list --format '{{.Names}}' | grep "^${PROXY_CONTAINER_NAME}$")" != "" ]]; then
-        docker container stop $PROXY_CONTAINER_NAME 1>/dev/null
-    fi
-    echo "Docker proxy has stopped."
+stopProxy() {
+  local running_proxy_container_json=`docker container inspect $IMDS_SPOOF_PROXY_CONTAINER_NAME 2>/dev/null`
+  if [[ "$running_proxy_container_json" != "[]" ]]; then
+    docker container stop $IMDS_SPOOF_PROXY_CONTAINER_NAME >/dev/null 2>&1
+  fi
 }
 
 stopBroker() {
-    local broker_dir=$(dirname $0)/../../imds-spoof-broker
-    if [ -f ${broker_dir}/broker.pid ]; then
-        PID=`cat ${broker_dir}/broker.pid`
-        if kill -0 $PID > /dev/null 2>&1; then
-            kill $PID
-            echo "broker stopped"
-        else
-            echo "Process $PID is not running; skipping broker stop."
-        fi
-        rm -f ${broker_dir}/broker.pid
-        return
+  local pid_file="$IMDS_SPOOF_BROKER_FOLDER/broker.pid"
+  if [[ -f "$pid_file" ]]; then
+    local pid=$(cat "$pid_file")
+    if kill -0 $pid >/dev/null 2>&1; then
+      kill $pid
+      sleep 1
+      if kill -0 $pid >/dev/null 2>&1; then
+        echo "Error: Failed to kill process $pid" >/dev/stderr
+        return 1
+      else
+        rm "$pid_file"
+      fi
+    else
+      rm "$pid_file"
     fi
-    echo "${broker_dir}/broker.pid not found; skipping broker stop."
+  fi
 }
 
 stopBroker
-startProxy
+stopProxy
 stopDockerNetwork
