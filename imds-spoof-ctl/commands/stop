@@ -31,7 +31,6 @@ stopProxy() {
   fi
 }
 
-
 stopBroker
 stopProxy
 stopDockerNetwork
