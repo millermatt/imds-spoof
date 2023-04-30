@@ -19,13 +19,11 @@ startDockerNetwork() {
 
 startProxy() {
     if [[ "$(docker container list --format '{{.Names}}' | grep "^${PROXY_CONTAINER_NAME}$")" == "" ]]; then
-    set -x
-        eval "docker container create -it --name $PROXY_CONTAINER_NAME $IMDS_SPOOF_PROXY_OPTS $PROXY_IMAGE 1>/dev/null"
-    set +x
+        eval "docker container create -it --rm --name $PROXY_CONTAINER_NAME $IMDS_SPOOF_PROXY_OPTS $PROXY_IMAGE 1>/dev/null"
         docker network connect --ip 169.254.169.254 $NETWORK_NAME $PROXY_CONTAINER_NAME
         docker network disconnect bridge $PROXY_CONTAINER_NAME
         docker container start $PROXY_CONTAINER_NAME 1>/dev/null
-        docker logs $PROXY_CONTAINER_NAME
+        # docker logs $PROXY_CONTAINER_NAME
     fi
     echo "Docker proxy is running."
 }

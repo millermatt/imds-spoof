@@ -1,0 +1,6 @@
+/latest/api/token:
+  PUT:
+    status: 404
+/latest/meta-data/placement/availability-zone/:
+  GET:
+    body: "us-west-2"
