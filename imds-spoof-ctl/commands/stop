@@ -8,6 +8,8 @@ export IMDS_SPOOF_BROKER_FOLDER=$IMDS_SPOOF_BROKER_FOLDER
 
 set -eu
 
+source "$(dirname $0)/../util/broker-ctl"
+
 stopDockerNetwork() {
   if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_NETWORK_NAME}$")" != "" ]]; then
     if [[ !$(docker network rm $IMDS_SPOOF_NETWORK_NAME >/dev/null 2>&1) ]]; then
@@ -29,24 +31,6 @@ stopProxy() {
   fi
 }
 
-stopBroker() {
-  local pid_file="$IMDS_SPOOF_BROKER_FOLDER/broker.pid"
-  if [[ -f "$pid_file" ]]; then
-    local pid=$(cat "$pid_file")
-    if kill -0 $pid >/dev/null 2>&1; then
-      kill $pid
-      sleep 1
-      if kill -0 $pid >/dev/null 2>&1; then
-        echo "Error: Failed to kill process $pid" >/dev/stderr
-        return 1
-      else
-        rm "$pid_file"
-      fi
-    else
-      rm "$pid_file"
-    fi
-  fi
-}
 
 stopBroker
 stopProxy

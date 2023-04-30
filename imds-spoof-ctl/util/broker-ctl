@@ -1,0 +1,39 @@
+#!/bin/bash
+
+startBroker() {
+  local pid_file="${IMDS_SPOOF_BROKER_FOLDER}/broker.pid"
+  mkdir -p "$IMDS_SPOOF_BROKER_FOLDER/logs"
+  if [ -f "$pid_file" ]; then
+    local pid=$(cat "$pid_file")
+    if kill -0 $pid >/dev/null 2>&1; then
+      echo "imds-spoof broker is already running."
+      return
+    else
+      rm "$pid_file"
+    fi
+  fi
+  eval "cd '$IMDS_SPOOF_BROKER_FOLDER' && $IMDS_SPOOF_BROKER_COMMAND >./logs/stdout.log 2>./logs/stderr.log &"
+  local pid=$!
+  printf $pid > "$IMDS_SPOOF_BROKER_FOLDER/broker.pid"
+}
+export startBroker
+
+stopBroker() {
+  local pid_file="$IMDS_SPOOF_BROKER_FOLDER/broker.pid"
+  if [[ -f "$pid_file" ]]; then
+    local pid=$(cat "$pid_file")
+    if kill -0 $pid >/dev/null 2>&1; then
+      kill $pid
+      sleep 1
+      if kill -0 $pid >/dev/null 2>&1; then
+        echo "Error: Failed to kill process $pid" >/dev/stderr
+        return 1
+      else
+        rm "$pid_file"
+      fi
+    else
+      rm "$pid_file"
+    fi
+  fi
+}
+export stopBroker

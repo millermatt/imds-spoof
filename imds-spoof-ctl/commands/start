@@ -12,6 +12,8 @@ export IMDS_SPOOF_BROKER_PORT=$IMDS_SPOOF_BROKER_PORT
 
 set -eu
 
+source "$(dirname $0)/../util/broker-ctl"
+
 startDockerNetwork() {
   if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_NETWORK_NAME}$")" == "" ]]; then
     docker network create --driver bridge --ip-range 169.254.169.0/16 --subnet 169.254.169.127/24 $IMDS_SPOOF_NETWORK_NAME 1>/dev/null
@@ -28,23 +30,6 @@ startProxy() {
     # docker logs $IMDS_SPOOF_PROXY_CONTAINER_NAME
   fi
   echo "imds-spoof Docker proxy is running."
-}
-
-startBroker() {
-  local pid_file="${IMDS_SPOOF_BROKER_FOLDER}/broker.pid"
-  mkdir -p "$IMDS_SPOOF_BROKER_FOLDER/logs"
-  if [ -f "$pid_file" ]; then
-    local pid=$(cat "$pid_file")
-    if kill -0 $pid >/dev/null 2>&1; then
-      echo "imds-spoof broker is already running."
-      return
-    else
-      rm "$pid_file"
-    fi
-  fi
-  eval "cd '$IMDS_SPOOF_BROKER_FOLDER' && $IMDS_SPOOF_BROKER_COMMAND >./logs/stdout.log 2>./logs/stderr.log &"
-  local pid=$!
-  printf $pid > "$IMDS_SPOOF_BROKER_FOLDER/broker.pid"
 }
 
 startDockerNetwork
