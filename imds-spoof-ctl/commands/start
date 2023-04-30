@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # these lines allow `set -u` (no undefined variables) to work for the rest of the script
-export IMDS_SPOOF_NETWORK_NAME=$IMDS_SPOOF_NETWORK_NAME
-export IMDS_SPOOF_PROXY_IMAGE=$IMDS_SPOOF_PROXY_IMAGE
-export IMDS_SPOOF_PROXY_CONTAINER_NAME=$IMDS_SPOOF_PROXY_CONTAINER_NAME
-export IMDS_SPOOF_PROXY_OPTS=$IMDS_SPOOF_PROXY_OPTS
+export IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME=$IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME
+export IMDS_SPOOF_PROXY_DOCKER_IMAGE=$IMDS_SPOOF_PROXY_DOCKER_IMAGE
+export IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME=$IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
+export IMDS_SPOOF_PROXY_DOCKER_RUN_PARAMS=$IMDS_SPOOF_PROXY_DOCKER_RUN_PARAMS
 export IMDS_SPOOF_BROKER_COMMAND=$IMDS_SPOOF_BROKER_COMMAND
 export IMDS_SPOOF_BROKER_FOLDER=$IMDS_SPOOF_BROKER_FOLDER
 export IMDS_SPOOF_BROKER_HOST=$IMDS_SPOOF_BROKER_HOST
@@ -15,20 +15,22 @@ set -eu
 source "$(dirname $0)/../util/broker-ctl"
 
 startDockerNetwork() {
-  if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_NETWORK_NAME}$")" == "" ]]; then
-    docker network create --driver bridge --ip-range 169.254.169.0/16 --subnet 169.254.169.127/24 $IMDS_SPOOF_NETWORK_NAME 1>/dev/null
+  if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME}$")" == "" ]]; then
+    docker network create --driver bridge --ip-range 169.254.169.0/16 --subnet 169.254.169.127/24 $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME 1>/dev/null
   fi
   echo "imds-spoof Docker network is running."
 }
 
 startProxy() {
-  if [[ "$(docker container list --format '{{.Names}}' | grep "^${IMDS_SPOOF_PROXY_CONTAINER_NAME}$")" == "" ]]; then
-    eval "docker container create -it --rm --name $IMDS_SPOOF_PROXY_CONTAINER_NAME $IMDS_SPOOF_PROXY_OPTS $IMDS_SPOOF_PROXY_IMAGE 1>/dev/null"
-    docker network connect --ip 169.254.169.254 $IMDS_SPOOF_NETWORK_NAME $IMDS_SPOOF_PROXY_CONTAINER_NAME
-    docker network disconnect bridge $IMDS_SPOOF_PROXY_CONTAINER_NAME
-    docker container start $IMDS_SPOOF_PROXY_CONTAINER_NAME 1>/dev/null
-    # docker logs $IMDS_SPOOF_PROXY_CONTAINER_NAME
+  set -x
+  if [[ "$(docker container list --format '{{.Names}}' | grep "^${IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME}$")" == "" ]]; then
+    eval "docker container create -it --rm --name $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME $IMDS_SPOOF_PROXY_DOCKER_RUN_PARAMS $IMDS_SPOOF_PROXY_DOCKER_IMAGE 1>/dev/null"
+    docker network connect --ip 169.254.169.254 $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
+    docker network disconnect bridge $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
+    docker container start $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME 1>/dev/null
+    # docker logs $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
   fi
+  set +x
   echo "imds-spoof Docker proxy is running."
 }
 

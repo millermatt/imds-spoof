@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const pino = require('pino')()
-const pinoHttp = require('pino-http')({ logger: pino })
+const pinoHttp = require('pino-http')({ logger: pino, autoLogging: false })
 const { getContainerNameFromIp } = require('./docker')
 
 const config = Object.keys(process.env).reduce((accumulator, key) => {
@@ -23,7 +23,7 @@ function restrictByIp(req, res, next) {
 
 function addContainerInfo(req, res, next) {
   const realIp = req.headers['x-real-ip']
-  const containerName = getContainerNameFromIp(realIp, config.IMDS_SPOOF_NETWORK_NAME)
+  const containerName = getContainerNameFromIp(realIp, config.IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME)
   req.dockerContainer = { name: containerName, ip: realIp }
   req.log.info(JSON.stringify(req.dockerContainer))
   next()

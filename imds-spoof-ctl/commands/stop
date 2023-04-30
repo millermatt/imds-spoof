@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # these lines allow `set -u` (no undefined variables) to work for the rest of the script
-export IMDS_SPOOF_NETWORK_NAME=$IMDS_SPOOF_NETWORK_NAME
-export IMDS_SPOOF_PROXY_CONTAINER_NAME=$IMDS_SPOOF_PROXY_CONTAINER_NAME
+export IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME=$IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME
+export IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME=$IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
 export IMDS_SPOOF_BROKER_COMMAND=$IMDS_SPOOF_BROKER_COMMAND
 export IMDS_SPOOF_BROKER_FOLDER=$IMDS_SPOOF_BROKER_FOLDER
 
@@ -11,11 +11,11 @@ set -eu
 source "$(dirname $0)/../util/broker-ctl"
 
 stopDockerNetwork() {
-  if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_NETWORK_NAME}$")" != "" ]]; then
-    if [[ !$(docker network rm $IMDS_SPOOF_NETWORK_NAME >/dev/null 2>&1) ]]; then
-      echo "Could not stop Docker network '$IMDS_SPOOF_NETWORK_NAME'" >/dev/stderr
+  if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME}$")" != "" ]]; then
+    if [[ !$(docker network rm $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME >/dev/null 2>&1) ]]; then
+      echo "Could not stop Docker network '$IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME'" >/dev/stderr
       echo "Containers connected to the network:" >/dev/stderr
-      local connected_containers="$(docker network inspect $IMDS_SPOOF_NETWORK_NAME -f '{{range $id, $container := .Containers}}{{$container.Name}} {{end}}')"
+      local connected_containers="$(docker network inspect $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME -f '{{range $id, $container := .Containers}}{{$container.Name}} {{end}}')"
       # trim trailing whitespace
       connected_containers="$(echo "$connected_containers" | xargs)"
       echo "$connected_containers" | tr ' ' '\n' | sed -e 's/^/  - /'
@@ -25,9 +25,9 @@ stopDockerNetwork() {
 }
 
 stopProxy() {
-  local running_proxy_container_json=`docker container inspect $IMDS_SPOOF_PROXY_CONTAINER_NAME 2>/dev/null`
+  local running_proxy_container_json=`docker container inspect $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME 2>/dev/null`
   if [[ "$running_proxy_container_json" != "[]" ]]; then
-    docker container stop $IMDS_SPOOF_PROXY_CONTAINER_NAME >/dev/null 2>&1
+    docker container stop $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME >/dev/null 2>&1
   fi
 }
 
