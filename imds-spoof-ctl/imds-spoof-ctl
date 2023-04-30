@@ -63,7 +63,8 @@ COMMAND=$1
 COMMAND_PATH="`dirname $0`/commands/${COMMAND}"
 
 if [[ -f "$COMMAND_PATH" ]]; then
-    eval "$COMMAND_PATH"
+    shift
+    eval "$COMMAND_PATH $@"
 else
     echo "error: invalid command" >/dev/stderr
     exit 1
