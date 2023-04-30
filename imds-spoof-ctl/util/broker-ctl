@@ -12,9 +12,15 @@ startBroker() {
       rm "$pid_file"
     fi
   fi
-  eval "cd '$IMDS_SPOOF_BROKER_FOLDER' && $IMDS_SPOOF_BROKER_COMMAND >./logs/stdout.log 2>./logs/stderr.log &"
+  if nc -z $IMDS_SPOOF_BROKER_HOST $IMDS_SPOOF_BROKER_PORT ; then
+      echo "Can't start imds-spoof broker. $IMDS_SPOOF_BROKER_HOST:$IMDS_SPOOF_BROKER_PORT is already bound."
+      return
+  fi
+  cd "$IMDS_SPOOF_BROKER_FOLDER"
+  eval "$IMDS_SPOOF_BROKER_COMMAND >./logs/stdout.log 2>./logs/stderr.log &"
   local pid=$!
-  printf $pid > "$IMDS_SPOOF_BROKER_FOLDER/broker.pid"
+  cd $OLDPWD
+  printf $pid >"$IMDS_SPOOF_BROKER_FOLDER/broker.pid"
 }
 export startBroker
 
@@ -24,16 +30,24 @@ stopBroker() {
     local pid=$(cat "$pid_file")
     if kill -0 $pid >/dev/null 2>&1; then
       kill $pid
-      sleep 1
-      if kill -0 $pid >/dev/null 2>&1; then
-        echo "Error: Failed to kill process $pid" >/dev/stderr
-        return 1
-      else
-        rm "$pid_file"
-      fi
+      local timeout=10, counter=0
+      while ps -p $pid >/dev/null; do
+        sleep 1
+        (( counter++ ))
+        if [[ $counter -gt $timeout ]]; then
+          echo "Timed out waiting for pid $pid to die." >/dev/stderr
+          return 1
+        fi
+      done
+      rm "$pid_file"
     else
       rm "$pid_file"
     fi
   fi
 }
 export stopBroker
+
+clearBrokerLogs() {
+  rm -f "$IMDS_SPOOF_BROKER_FOLDER/logs/stdout.log" "$IMDS_SPOOF_BROKER_FOLDER/logs/stderr.log"
+}
+export clearBrokerLogs

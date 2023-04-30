@@ -3,6 +3,8 @@
 # these lines allow `set -u` (no undefined variables) to work for the rest of the script
 export IMDS_SPOOF_BROKER_COMMAND=$IMDS_SPOOF_BROKER_COMMAND
 export IMDS_SPOOF_BROKER_FOLDER=$IMDS_SPOOF_BROKER_FOLDER
+export IMDS_SPOOF_BROKER_HOST=$IMDS_SPOOF_BROKER_HOST
+export IMDS_SPOOF_BROKER_PORT=$IMDS_SPOOF_BROKER_PORT
 
 set -eu
 
@@ -10,4 +12,5 @@ source "$(dirname $0)/../util/broker-ctl"
 
 stopBroker
 sleep 1
+clearBrokerLogs
 startBroker
