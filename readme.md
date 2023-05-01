@@ -31,7 +31,25 @@ Still working on:
 
 # Install
 
-tbd
+```
+git clone https://github.com/millermatt/imds-spoof.git
+```
+
+# Use
+
+```
+cd imds-spoof/imds-spoof-ctl
+./imds-spoof-ctl start
+```
+
+That should start all of the components running. Next you must attach your application's container to the imds-spoof Docker network:
+
+```
+docker network connect imds-spoof <container name>
+```
+
+Now IMDS calls from the AWS SDK in your app should get proxied to the imds-spoof-broker on the Docker host.
+
 
 # License
 
