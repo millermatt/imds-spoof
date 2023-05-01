@@ -4,7 +4,7 @@
 
 <img align="right" src="imds-spoof.drawio.png" alt="imds-spoof overview">
 
-`imds-spoof` is a Docker application designed to mimic the behavior of the AWS Instance Metadata Service (IMDS) for developers during local development. This application consists of several components working together to provide a local instance metadata service to Docker containers running on developer machines.
+`imds-spoof` is an application designed to mimic the behavior of the AWS Instance Metadata Service (IMDS) for developers during local development. This application consists of several components working together to provide a local instance metadata service to Docker containers running on developer machines.
 
 The first component is the `imds-spoof Docker network`. This network is set up with the 169.254.169.0/16 CIDR range to mimic the IP range used by AWS instances for their metadata service.
 
