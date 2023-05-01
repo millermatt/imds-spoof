@@ -1,7 +1,6 @@
 {
   "name": "imds-spoof-broker",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "dependencies": {
     "body-parser": "^1.20.2",
@@ -13,6 +12,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT"
+  "author": "Matt Miller",
+  "license": "Apache-2.0",
+  "description": "This server receives proxied traffic from the imds-spoof-proxy and calls an external program to retrieve the necessary IMDS data, which is then returned to the developer's app container. The broker allows imds-spoof to interact with applications on the Docker host.",
+  "keywords": [
+    "imds",
+    "spoof",
+    "aws",
+    "docker"
+  ]
 }
