@@ -1,0 +1,86 @@
+<mxfile host="app.diagrams.net" modified="2023-05-01T03:04:11.484Z" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/112.0" etag="-xzhpMfyIRmumuC4YkSY" version="21.2.3">
+  <diagram name="Page-1" id="opZjxoxZwuWf7aZ8j2uG">
+    <mxGraphModel dx="2234" dy="795" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#deddda" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-5" value="Docker" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="90" width="360" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-16" value="Containers" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="Ao6hpI_Yw0EmOXRYJf8d-5">
+          <mxGeometry x="20" y="120" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-3" value="&lt;div&gt;imds-spoof-proxy&lt;/div&gt;&lt;div&gt;169.254.169.254&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="Ao6hpI_Yw0EmOXRYJf8d-16">
+          <mxGeometry x="20" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-17" value="&lt;div&gt;app with&lt;/div&gt;&lt;div&gt;AWS SDK&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="Ao6hpI_Yw0EmOXRYJf8d-16">
+          <mxGeometry x="180" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="Ao6hpI_Yw0EmOXRYJf8d-5" source="Ao6hpI_Yw0EmOXRYJf8d-7" target="Ao6hpI_Yw0EmOXRYJf8d-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="110" />
+              <mxPoint x="100" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-7" value="&lt;div&gt;imds-spoof Docker Network&lt;/div&gt;&lt;div&gt;169.254.169.0/16&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="Ao6hpI_Yw0EmOXRYJf8d-5">
+          <mxGeometry x="20" y="40" width="320" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="Ao6hpI_Yw0EmOXRYJf8d-5" source="Ao6hpI_Yw0EmOXRYJf8d-17">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Ao6hpI_Yw0EmOXRYJf8d-10" target="Ao6hpI_Yw0EmOXRYJf8d-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="325" />
+              <mxPoint x="240" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Ao6hpI_Yw0EmOXRYJf8d-10" target="Ao6hpI_Yw0EmOXRYJf8d-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="325" />
+              <mxPoint x="240" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Ao6hpI_Yw0EmOXRYJf8d-10" target="Ao6hpI_Yw0EmOXRYJf8d-19">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="325" />
+              <mxPoint x="240" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-10" value="imds-spoof-ctl" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="-70" y="280" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-11" value="start" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="Ao6hpI_Yw0EmOXRYJf8d-10">
+          <mxGeometry x="20" y="30" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-12" value="stop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="Ao6hpI_Yw0EmOXRYJf8d-10">
+          <mxGeometry x="20" y="60" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Ao6hpI_Yw0EmOXRYJf8d-19" target="Ao6hpI_Yw0EmOXRYJf8d-33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-19" value="imds-spoof-broker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="360" y="370" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-29" value="Manages" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="149" y="291" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Ao6hpI_Yw0EmOXRYJf8d-3" target="Ao6hpI_Yw0EmOXRYJf8d-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Ao6hpI_Yw0EmOXRYJf8d-33" value="external app that provides imds data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="360" y="482" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
