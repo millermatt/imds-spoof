@@ -38,7 +38,6 @@ startDockerNetwork() {
 }
 
 startProxy() {
-  set -x
   if [[ "$(docker container list --format '{{.Names}}' | grep "^${IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME}$")" == "" ]]; then
     eval "docker container create -it --rm --name $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME $IMDS_SPOOF_PROXY_DOCKER_RUN_PARAMS $IMDS_SPOOF_PROXY_DOCKER_IMAGE 1>/dev/null"
     docker network connect --ip 169.254.169.254 $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
@@ -46,7 +45,6 @@ startProxy() {
     docker container start $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME 1>/dev/null
     # docker logs $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
   fi
-  set +x
   echo "imds-spoof Docker proxy is running."
 }
 
