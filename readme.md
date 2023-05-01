@@ -16,7 +16,7 @@ The final component is an application that can return IMDS data based on CLI par
 
 imds-spoof provides a local instance metadata service that can be used for testing and development purposes. By mimicking the behavior of the AWS IMDS, developers can test their applications' interactions with the IMDS without needing to deploy to AWS.
 
-<img src="imds-spoof.drawio.png" alt="imds-spoof overview">
+<img src="documentation/assets/imds-spoof.drawio.png" alt="imds-spoof overview">
 
 ## Development status
 
