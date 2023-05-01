@@ -9,7 +9,7 @@ The broker is a nodejs/express app that
 
 # Design
 
-The broker calls the external app and passes to parameters:
+The broker calls the external app and passes 2 parameters:
 
 - The name of the Docker container that iniated the request
 - A base64 encoded JSON string that represents the IMDS request. By using base64 we can avoid quoting problems in the parameters.
