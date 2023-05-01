@@ -53,6 +53,7 @@ Now IMDS calls from the AWS SDK in your app should get proxied to the imds-spoof
 # Docs
 
 - [imds-spoof-ctl](documentation/imds-spoof-ctl.md)
+- [imds-spoof-broker](documentation/imds-spoof-broker.md)
 
 
 # License
