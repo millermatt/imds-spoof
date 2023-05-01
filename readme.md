@@ -50,6 +50,10 @@ docker network connect imds-spoof <container name>
 
 Now IMDS calls from the AWS SDK in your app should get proxied to the imds-spoof-broker on the Docker host.
 
+# Docs
+
+- [imds-spoof-ctl](documentation/imds-spoof-ctl.md)
+
 
 # License
 
