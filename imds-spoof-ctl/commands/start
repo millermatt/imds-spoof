@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 # these lines allow `set -u` (no undefined variables) to work for the rest of the script
 export IMDS_SPOOF_BROKER_COMMAND=$IMDS_SPOOF_BROKER_COMMAND
 export IMDS_SPOOF_BROKER_EXTERNAL_COMMAND=$IMDS_SPOOF_BROKER_EXTERNAL_COMMAND
@@ -32,12 +31,30 @@ source "$(dirname $0)/../util/broker-ctl"
 
 startDockerNetwork() {
   if [[ "$(docker network list --format '{{.Name}}' | grep "^${IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME}$")" == "" ]]; then
+    # Get the list of Docker network names
+    networks=$(docker network ls --format '{{.Name}}')
+
+    # Iterate over each network
+    for network in $networks; do
+      if [[ $network != $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME ]]; then
+        # Inspect the network and check the subnet
+        subnet=$(docker network inspect $network --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}')
+
+        # Check if the subnet matches the desired IP range
+        if [[ $subnet == "169.254.169"* ]]; then
+          echo "Docker network '$network' is using the IP range 169.254.169.x. Cannot start imds-spoof Docker network." >/dev/stderr
+          return 1
+        fi
+      fi
+    done
+
     docker network create --driver bridge --ip-range 169.254.169.0/16 --subnet 169.254.169.127/24 $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME 1>/dev/null
   fi
   echo "imds-spoof Docker network is running."
 }
 
 startProxy() {
+  # set -x
   if [[ "$(docker container list --format '{{.Names}}' | grep "^${IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME}$")" == "" ]]; then
     eval "docker container create -it --rm --name $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME $IMDS_SPOOF_PROXY_DOCKER_RUN_PARAMS $IMDS_SPOOF_PROXY_DOCKER_IMAGE 1>/dev/null"
     docker network connect --ip 169.254.169.254 $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
@@ -45,7 +62,11 @@ startProxy() {
     docker container start $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME 1>/dev/null
     # docker logs $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME
   fi
+  # set +x
   echo "imds-spoof Docker proxy is running."
+  echo "To attach your application's container to the imds-spoof Docker network run:"
+  echo -e "  \033[32mdocker network connect imds-spoof <container name>\033[0m"
+  echo "Or specify the imds-spoof network for your service in a docker compose file."
 }
 
 startDockerNetwork
