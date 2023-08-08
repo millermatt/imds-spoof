@@ -105,27 +105,46 @@ function broker(req, res, next) {
   // req.log.debug(output)
 
   // parse output as json and set similar response props
-  const decodedOutput = decodeBase64(output)
+  const decodedOutput = Buffer.from(output.toString(), 'base64')
+  res.log.info("decoded output: " + decodedOutput)
   if (decodedOutput == null) {
     req.log.error('Received non-base64 response from external command')
     res.status(500).send('').end()
   } else {
-    const externalResponse = JSON.parse(decodedOutput)
+    let externalResponse = {}
+    let responseBody
+    let responseHeaders = {
+      ...res.headers,
+    }
+
+    try {
+      externalResponse = JSON.parse(decodedOutput)
+      res.set('Content-Type', 'application/json')
+      req.log.info('external command response is JSON')
+    } catch (e) {
+      // ignore, since the response may not have been json
+      req.log.info('external command response is not JSON')
+    }
+
     if (typeof externalResponse.status != 'undefined') {
       res.status(externalResponse.status)
     }
     if (typeof externalResponse.headers != 'undefined') {
-      res.headers = {
-        ...res.headers,
+      responseHeaders = {
+        ...responseHeaders,
         ...externalResponse.headers
       }
     }
-    if (typeof externalResponse.body != 'undefined') {
-      res.send(externalResponse.body)
+    if (typeof externalResponse.body == 'undefined') {
+      responseBody = decodedOutput
+    } else {
+      responseBody = externalResponse.body
     }
-    res.end()
-  }
 
+    res.headers = responseHeaders
+    res.status(200)
+    res.send(responseBody)
+    res.end()
   }
 
 }
