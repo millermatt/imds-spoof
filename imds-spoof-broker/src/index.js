@@ -17,7 +17,7 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-const pino = require('pino')({ level: process.env.LOG_LEVEL })
+const pino = require('pino')({ level: process.env.LOG_LEVEL || 'info' })
 const pinoHttp = require('pino-http')({ logger: pino, autoLogging: false })
 const { getContainerNameFromIp, getContainerLabels } = require('./docker')
 const { execSync } = require('child_process');
