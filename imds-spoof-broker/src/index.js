@@ -19,7 +19,7 @@ const app = express()
 const bodyParser = require('body-parser')
 const pino = require('pino')({ level: process.env.LOG_LEVEL })
 const pinoHttp = require('pino-http')({ logger: pino, autoLogging: false })
-const { getContainerNameFromIp } = require('./docker')
+const { getContainerNameFromIp, getContainerLabels } = require('./docker')
 const { execSync } = require('child_process');
 
 
@@ -61,13 +61,24 @@ these props will be set on the express js response object sent back to the docke
 */
 function broker(req, res, next) {
   const realIp = req.headers['x-real-ip']
-  const containerName = getContainerNameFromIp(realIp, config.IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME)
+  let containerName
+  let containerLabels
+
+  try {
+    containerName = getContainerNameFromIp(realIp, config.IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME)
+    containerLabels = getContainerLabels(containerName)
+  } catch (e) {
+    console.error(e)
+    return e
+  }
 
   // create a request object to send to the external program
   const partialRequest = {
     method: req.method,
     path: req.path,
-    headers: req.headers
+    headers: req.headers,
+    containerName,
+    containerLabels
   }
 
   if (req.body) {
