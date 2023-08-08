@@ -85,13 +85,15 @@ function broker(req, res, next) {
     partialRequest.body = req.body
   }
 
-  const base64request = Buffer.from(JSON.stringify(partialRequest)).toString('base64')
+  const jsonRequest = JSON.stringify(partialRequest)
+  const base64request = Buffer.from(jsonRequest).toString('base64')
   let output = ''
 
+  // console.log(`sending: ${base64request}`)
   try {
     // Execute the external program with parameters and capture its stdout, stderr, and exit code
-    const output = execSync(`${config.IMDS_SPOOF_BROKER_EXTERNAL_COMMAND} ${containerName} ${base64request}`, { encoding: 'utf8' });
-
+    const command = `${config.IMDS_SPOOF_BROKER_EXTERNAL_COMMAND} ${base64request}`
+    output = execSync(command, { encoding: 'utf8' });
   } catch (error) {
     // Output the captured stderr and exit code
     req.log.error(error.stderr);
@@ -123,21 +125,8 @@ function broker(req, res, next) {
     res.end()
   }
 
-}
-
-function decodeBase64(str) {
-  try {
-    // Attempt to decode the string using base64 encoding
-    const decoded = Buffer.from(str, 'base64').toString('utf-8');
-
-    if (decoded == str) {
-      return null
-    }
-    return decoded;
-  } catch (e) {
-    // Catch any errors from attempting to decode the string
-    return null;
   }
+
 }
 
 app.use(pinoHttp)
