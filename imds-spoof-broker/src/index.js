@@ -98,6 +98,7 @@ function broker(req, res, next) {
     // Output the captured stderr and exit code
     req.log.error(error.stderr);
     req.log.error(`Exit code: ${error.status}`);
+    return error
   }
 
   // // Output the captured stdout
