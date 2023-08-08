@@ -17,9 +17,9 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-const pino = require('pino')({ level: process.env.LOG_LEVEL })
+const pino = require('pino')({ level: process.env.LOG_LEVEL || 'info' })
 const pinoHttp = require('pino-http')({ logger: pino, autoLogging: false })
-const { getContainerNameFromIp } = require('./docker')
+const { getContainerNameFromIp, getContainerLabels } = require('./docker')
 const { execSync } = require('child_process');
 
 
@@ -32,7 +32,7 @@ const config = Object.keys(process.env).reduce((accumulator, key) => {
 pino.info(config)
 
 function restrictByIp(req, res, next) {
-  if (req.ip != '169.254.169.254') {
+  if (req.ip != '169.254.169.254' && req.ip != '127.0.0.1') {
     res.status(403).send('').end()
     req.log.info(`Rejected request from ${req.ip}`)
     return
@@ -61,72 +61,92 @@ these props will be set on the express js response object sent back to the docke
 */
 function broker(req, res, next) {
   const realIp = req.headers['x-real-ip']
-  const containerName = getContainerNameFromIp(realIp, config.IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME)
+  let containerName
+  let containerLabels
+
+  try {
+    containerName = getContainerNameFromIp(realIp, config.IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME)
+    containerLabels = getContainerLabels(containerName)
+  } catch (e) {
+    console.error(e)
+    return e
+  }
 
   // create a request object to send to the external program
   const partialRequest = {
     method: req.method,
     path: req.path,
-    headers: req.headers
+    headers: req.headers,
+    containerName,
+    containerLabels
   }
 
   if (req.body) {
     partialRequest.body = req.body
   }
 
-  const base64request = Buffer.from(JSON.stringify(partialRequest)).toString('base64')
+  const jsonRequest = JSON.stringify(partialRequest)
+  const base64request = Buffer.from(jsonRequest).toString('base64')
   let output = ''
 
+  // console.log(`sending: ${base64request}`)
   try {
     // Execute the external program with parameters and capture its stdout, stderr, and exit code
-    const output = execSync(`${config.IMDS_SPOOF_BROKER_EXTERNAL_COMMAND} ${containerName} ${base64request}`, { encoding: 'utf8' });
-
+    const command = `${config.IMDS_SPOOF_BROKER_EXTERNAL_COMMAND} ${base64request}`
+    output = execSync(command, { encoding: 'utf8' });
   } catch (error) {
     // Output the captured stderr and exit code
     req.log.error(error.stderr);
     req.log.error(`Exit code: ${error.status}`);
+    return error
   }
 
   // // Output the captured stdout
   // req.log.debug(output)
 
   // parse output as json and set similar response props
-  const decodedOutput = decodeBase64(output)
+  const decodedOutput = Buffer.from(output.toString(), 'base64')
+  res.log.info("decoded output: " + decodedOutput)
   if (decodedOutput == null) {
     req.log.error('Received non-base64 response from external command')
     res.status(500).send('').end()
   } else {
-    const externalResponse = JSON.parse(decodedOutput)
+    let externalResponse = {}
+    let responseBody
+    let responseHeaders = {
+      ...res.headers,
+    }
+
+    try {
+      externalResponse = JSON.parse(decodedOutput)
+      res.set('Content-Type', 'application/json')
+      req.log.info('external command response is JSON')
+    } catch (e) {
+      // ignore, since the response may not have been json
+      req.log.info('external command response is not JSON')
+    }
+
     if (typeof externalResponse.status != 'undefined') {
       res.status(externalResponse.status)
     }
     if (typeof externalResponse.headers != 'undefined') {
-      res.headers = {
-        ...res.headers,
+      responseHeaders = {
+        ...responseHeaders,
         ...externalResponse.headers
       }
     }
-    if (typeof externalResponse.body != 'undefined') {
-      res.send(externalResponse.body)
+    if (typeof externalResponse.body == 'undefined') {
+      responseBody = decodedOutput
+    } else {
+      responseBody = externalResponse.body
     }
+
+    res.headers = responseHeaders
+    res.status(200)
+    res.send(responseBody)
     res.end()
   }
 
-}
-
-function decodeBase64(str) {
-  try {
-    // Attempt to decode the string using base64 encoding
-    const decoded = Buffer.from(str, 'base64').toString('utf-8');
-
-    if (decoded == str) {
-      return null
-    }
-    return decoded;
-  } catch (e) {
-    // Catch any errors from attempting to decode the string
-    return null;
-  }
 }
 
 app.use(pinoHttp)

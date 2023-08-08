@@ -42,6 +42,7 @@ stopProxy() {
   local running_proxy_container_json=`docker container inspect $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME 2>/dev/null`
   if [[ "$running_proxy_container_json" != "[]" ]]; then
     docker container stop $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME >/dev/null 2>&1
+    docker container rm $IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME >/dev/null 2>&1
   fi
 }
 

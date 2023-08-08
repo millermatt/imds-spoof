@@ -16,52 +16,34 @@
 
 set -e
 
-trap "exit 1" TERM
-
-# finds an ip on the host that the broker will bind to
-# override by setting an env var named IMDS_SPOOF_BROKER_HOST to the desired ip
-getBrokerHost() {
-    if [[ -z $IMDS_SPOOF_BROKER_HOST ]]; then
-        # Get the operating system name
-        OS=$(uname)
-        # Check if the operating system is Linux
-        if [[ "$OS" == "Linux" ]]; then
-            # Get the IP address using ifconfig
-            IP=$(ifconfig | grep 'inet ' | grep -v '127.0.0.1' | grep -v '169.254.169.1' | awk '{print $2}')
-            # If ifconfig didn't work, try using ip
-            if [ -z "$IP" ]; then
-                IP=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | grep -v '169.254.169.1' | awk '{print $2}' | cut -d'/' -f1)
-            fi
-            IP="$(echo "$IP" | head -n 1)"
-            echo "$IP"
-            # echo "Broker IP: '$IP'" >/dev/stderr
-            return
-        fi
-
-        # Check if the operating system is macOS
-        if [[ "$OS" == "Darwin" ]]; then
-            echo "host.docker.internal"
-            return
-        fi
-
-        # todo: add windows support
-
-        return 1
-    else
-        echo $IMDS_SPOOF_BROKER_HOST
+getBrokerBindHost() {
+    # Get the IP address using ifconfig
+    IP=$(ifconfig | grep 'inet ' | grep -v '127.0.0.1' | grep -v '169.254.169.1' | awk '{print $2}')
+    # If ifconfig didn't work, try using ip
+    if [ -z "$IP" ]; then
+        IP=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | grep -v '169.254.169.1' | awk '{print $2}' | cut -d'/' -f1)
     fi
+    IP="$(echo "$IP" | head -n 1)"
+    echo "$IP"
 }
 
 # defaults
+OS=$(uname)
+if [[ $OS == "Linux" ]]; then
+    DEFAULT_IMDS_SPOOF_PROXY_DOCKER_UPSTREAM=$(getBrokerBindHost)
+    DEFAULT_IMDS_SPOOF_BROKER_HOST=$DEFAULT_IMDS_SPOOF_PROXY_DOCKER_UPSTREAM
+else
+    DEFAULT_IMDS_SPOOF_PROXY_DOCKER_UPSTREAM=host.docker.internal
+    DEFAULT_IMDS_SPOOF_BROKER_HOST=127.0.0.1
+fi
 DEFAULT_IMDS_SPOOF_BROKER_COMMAND="node ./src/index.js"
-DEFAULT_IMDS_SPOOF_BROKER_EXTERNAL_COMMAND="echo"
+DEFAULT_IMDS_SPOOF_BROKER_EXTERNAL_COMMAND="echo -n"
 DEFAULT_IMDS_SPOOF_BROKER_FOLDER="$(dirname $0)/../imds-spoof-broker"
-DEFAULT_IMDS_SPOOF_BROKER_HOST="$(getBrokerHost)"
-DEFAULT_IMDS_SPOOF_BROKER_PORT="3000"
+DEFAULT_IMDS_SPOOF_BROKER_PORT="5791"
 DEFAULT_IMDS_SPOOF_PROXY_DOCKER_CONTAINER_NAME=imds-spoof-proxy
 DEFAULT_IMDS_SPOOF_PROXY_DOCKER_IMAGE=nginx
 DEFAULT_IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME=imds-spoof
-DEFAULT_IMDS_SPOOF_PROXY_DOCKER_RUN_PARAMS="-e BROKER_HOST=$DEFAULT_IMDS_SPOOF_BROKER_HOST -e BROKER_PORT=$DEFAULT_IMDS_SPOOF_BROKER_PORT -v $(dirname $0)/config/imds-spoof-nginx.conf.template:/etc/nginx/templates/default.conf.template:ro"
+DEFAULT_IMDS_SPOOF_PROXY_DOCKER_RUN_PARAMS="-e BROKER_HOST=$DEFAULT_IMDS_SPOOF_PROXY_DOCKER_UPSTREAM -e BROKER_PORT=$DEFAULT_IMDS_SPOOF_BROKER_PORT -v "$(realpath "$(dirname $0)")/config/imds-spoof-nginx.conf.template":/etc/nginx/templates/default.conf.template:ro"
 
 # overrides
 export IMDS_SPOOF_BROKER_COMMAND="${IMDS_SPOOF_BROKER_COMMAND-${DEFAULT_IMDS_SPOOF_BROKER_COMMAND}}"
