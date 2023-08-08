@@ -17,7 +17,8 @@
 const { execSync } = require('child_process')
 
 module.exports = {
-  getContainerNameFromIp
+  getContainerNameFromIp,
+  getContainerLabels
 }
 
 function getContainerNameFromIp(ipAddress, networkName) {
@@ -29,6 +30,20 @@ function getContainerNameFromIp(ipAddress, networkName) {
     console.error(`Could not find container with IP address : ${ipAddress}`)
     return null
   }
+}
+
+function getContainerLabels(containerName) {
+  if (containerName) {
+    const dockerCommand = `docker inspect ${containerName}`
+    try {
+      const jsonString = execSync(dockerCommand).toString().trim()
+      return JSON.parse(jsonString)[0].Config.Labels
+    } catch (error) {
+      console.error(`Error while running Docker command: ${dockerCommand}`)
+      return null
+    }
+  }
+  return null
 }
 
 function inspectNetwork(networkName) {
