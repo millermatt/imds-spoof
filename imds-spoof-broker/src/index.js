@@ -32,7 +32,7 @@ const config = Object.keys(process.env).reduce((accumulator, key) => {
 pino.info(config)
 
 function restrictByIp(req, res, next) {
-  if (req.ip != '169.254.169.254') {
+  if (req.ip != '169.254.169.254' && req.ip != '127.0.0.1') {
     res.status(403).send('').end()
     req.log.info(`Rejected request from ${req.ip}`)
     return
