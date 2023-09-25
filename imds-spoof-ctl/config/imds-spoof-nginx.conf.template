@@ -26,3 +26,10 @@
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
     }
+
+log_format main_stdout '$remote_addr - $remote_user [$time_local] '
+                       '"$request" $status $body_bytes_sent '
+                       '"$http_referer" "$http_user_agent"';
+
+# Set the access log to output to stdout using the custom format
+access_log /dev/stdout main_stdout;
