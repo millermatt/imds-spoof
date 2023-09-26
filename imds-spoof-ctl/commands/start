@@ -48,7 +48,7 @@ startDockerNetwork() {
       fi
     done
 
-    docker network create --driver bridge --ip-range 169.254.169.0/16 --subnet 169.254.169.127/24 --gateway 169.254.169.1 $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME 1>/dev/null
+    docker network create --driver bridge --ip-range 169.254.169.0/25 --subnet 169.254.169.0/24 $IMDS_SPOOF_PROXY_DOCKER_NETWORK_NAME 1>/dev/null
   fi
   echo "imds-spoof Docker network is running."
 }
